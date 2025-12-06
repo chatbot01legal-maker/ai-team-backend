@@ -1,3 +1,14 @@
+#!/bin/bash
+echo "🔄 ACTUALIZANDO GEMINI SERVICE CON SDK REAL"
+echo "=========================================="
+
+cd ~/ai_team_v1/ai_team_backend
+
+# Crear backup del archivo actual
+cp src/services/geminiService.js src/services/geminiService.js.backup
+
+# Crear nueva versión con SDK real
+cat > src/services/geminiService.js << 'GEMINIEOF'
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require('axios');
 
@@ -108,3 +119,9 @@ class GeminiService {
 }
 
 module.exports = { GeminiService };
+GEMINIEOF
+
+echo "✅ geminiService.js actualizado con SDK real"
+echo ""
+echo "📦 Dependencias actualizadas:"
+npm list @google/generative-ai 2>/dev/null || echo "Instalando dependencia..."
