@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  ai-team-backend:
+    build: .
+    ports:
+      - "10000:10000"
+    environment:
+      - NODE_ENV=production
+      - PORT=10000
+    volumes:
+      - ./memory:/app/memory
+      - ./logs:/app/logs
+    restart: unless-stopped
