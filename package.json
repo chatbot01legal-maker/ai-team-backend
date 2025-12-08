@@ -1,3 +1,18 @@
 {
-  # Pega aquí TODO el contenido final de tu package.json
+  "name": "ai-team-backend",
+  "version": "1.0.0",
+  "description": "Backend del proyecto AI Team",
+  "main": "server.cjs",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "nodemon": "^3.0.2"
+  }
 }
