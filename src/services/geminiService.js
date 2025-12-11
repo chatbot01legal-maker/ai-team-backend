@@ -1,39 +1,26 @@
-const axios = require('axios');
+import dotenv from "dotenv";
+dotenv.config();
 
-const DEFAULT_MODELS = [
-  'gemini-2.0-pro',
-  'gemini-2.0-flash',
-  'gemini-1.5-pro'
-];
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-class GeminiService {
-  constructor({ apiKey, mode='simulated', modelList } = {}) {
-    this.apiKey = apiKey || process.env.GEMINI_API_KEY;
-    this.mode = process.env.GEMINI_MODE || mode;
-    this.models = modelList || DEFAULT_MODELS;
-    this.timeoutMs = 15000;
-  }
+const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-  async generateText(prompt, opts = {}) {
-    // Siempre usar simulated por ahora
-    return this._simulatedText(prompt, opts);
-  }
+// Nombre real del modelo Gemeni 2.5 (turbine)
+const MODEL_NAME = "gemini-2.5-flash";
 
-  async embed(text) {
-    return this._simulatedEmbed(text);
-  }
+export async function generateText(prompt) {
+  try {
+    if (!prompt) throw new Error("Prompt vacío.");
 
-  _simulatedText(prompt, opts) {
-    const base = (opts.signature || 'SIM') + ' | ' + prompt.slice(0, 200);
-    const text = base + ' -- simulated response';
-    return { text, model: 'simulated' };
-  }
+    const model = client.getGenerativeModel({ model: MODEL_NAME });
 
-  _simulatedEmbed(text) {
-    const seed = [...text].reduce((s, ch) => s + ch.charCodeAt(0), 0);
-    const v = new Array(128).fill(0).map((_, i) => Math.sin(seed + i));
-    return v;
+    const result = await model.generateContent(prompt);
+
+    const text = result?.response?.text?.();
+
+    return text || "[Respuesta vacía de Gemini]";
+  } catch (err) {
+    console.error("Gemini ERROR:", err);
+    throw err;
   }
 }
-
-module.exports = { GeminiService };
