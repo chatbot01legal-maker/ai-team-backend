@@ -1,30 +1,53 @@
-const server = require('./server.js');
-const axios = require('axios');
+require('dotenv').config();
+const express = require('express');
+const bodyParser = require('body-parser');
+const { GeminiService } = require('./src/services/geminiService');
 
-console.log('🌐 Probando servidor Express...');
+const app = express();
+// Usar el puerto dinámico de Render/producción
+const PORT = process.env.PORT || 3002;
 
-// El servidor ya está configurado para escuchar en server.js
-// Simplemente verificamos que puede responder
+// Middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-setTimeout(async () => {
+// Inicializar el servicio Gemini en modo real
+const geminiService = new GeminiService({ mode: 'real' });
+
+// 1. Health Check simple
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', time: Date.now() });
+});
+
+// 2. Endpoint de prueba POST que usa Gemini
+app.post('/api/gemini-test', async (req, res) => {
+    const prompt = req.body.prompt || 'Responde con "OK, conexión funcional"';
+    console.log(`\n📥 Recibida solicitud de prueba con prompt: "${prompt.substring(0, 30)}..."`);
+    
     try {
-        const response = await axios.get('http://localhost:10000/api/health');
-        console.log('✅ Health check exitoso:', response.data.status);
+        const result = await geminiService.generateText(prompt, { signature: 'TEST-WEB', forceSimulated: false });
         
-        // Probar endpoint de run-ticket
-        const ticketResponse = await axios.post('http://localhost:10000/api/run-ticket', {
-            question: 'Test del sistema completo',
-            mode: 'simulated'
+        console.log(`✅ Respuesta de Gemini recibida (Real: ${result.isReal ? 'SI' : 'NO'})`);
+        
+        res.json({
+            ok: true,
+            status: result.isReal ? 'REAL_API_OK' : 'SIMULATED_FALLBACK',
+            model: result.model,
+            response: result.text.substring(0, 200) + '...'
         });
-        
-        console.log('✅ Run-ticket exitoso:');
-        console.log('   Ticket ID:', ticketResponse.data.ticketId);
-        console.log('   Secuencia:', ticketResponse.data.sequence.map(s => s.agent).join(' → '));
-        console.log('   Duración:', ticketResponse.data.timings.totalMs + 'ms');
-        
-        process.exit(0);
     } catch (error) {
-        console.error('❌ Error en prueba de servidor:', error.message);
-        process.exit(1);
+        console.error('❌ Error en /api/gemini-test:', error.message);
+        res.status(500).json({ 
+            ok: false, 
+            error: 'Fallo en la llamada a Gemini', 
+            details: error.message 
+        });
     }
-}, 2000);
+});
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`\n🚀 Servidor de prueba Express escuchando en puerto ${PORT}`);
+    console.log(`   URL de prueba local: http://localhost:${PORT}/api/gemini-test`);
+});
+
