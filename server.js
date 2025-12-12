@@ -1,8 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Orchestrator } = require('./src/orchestrator/Orchestrator'); // Nuevo Orquestador
-const { GeminiService } = require('./src/services/geminiService');
+<<<<<<< HEAD
+const { Orchestrator } = require('./src/orchestrator/Orchestrator.js'); // Nuevo Orquestador
+const { GeminiService } = require('./src/services/geminiService.js');
+=======
+const { Orchestrator } = require('./src/orchestrator/Orchestrator.js'); // Nuevo Orquestador
+const { GeminiService } = require('./src/services/geminiService.js');
+>>>>>>> 35cedbc (FIX CRÍTICO: Mover toda la lógica de orquestación a server.js y cambiar Start Command en package.json. Eliminar test_server.js para forzar el uso del archivo principal.)
 
 const app = express();
 // Usamos el puerto estándar 10000 para que Render lo detecte sin problemas.
