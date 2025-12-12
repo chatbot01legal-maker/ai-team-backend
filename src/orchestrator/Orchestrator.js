@@ -1,17 +1,17 @@
 // ============================================================
-// 🤖 ORCHESTRATOR.JS - CORRECCIÓN DE RUTAS DE AGENTES
+// 🤖 ORCHESTRATOR.JS - CORRECCIÓN FINAL DE NOMENCLATURA (CASE-SENSITIVE)
 // ============================================================
 
-// Ruta de Servicios: CORREGIDA
+// Ruta de Servicios: CORRECTA
 const { GeminiService } = require('../services/geminiService.js'); 
 
-// Rutas de Agentes: CORREGIDAS
-// NOTA: Si el error persiste, confirma la nomenclatura exacta de tus archivos dentro de /src/agents/
-const DirectorAgent = require('../agents/DirectorAgent.js');
-const CreativeAgent = require('../agents/CreativeAgent.js');
-const AnalyticalAgent = require('../agents/AnalyticalAgent.js'); // Asunción
-const ControllerAgent = require('../agents/ControllerAgent.js'); // Asunción
-const CoachAgent = require('../agents/CoachAgent.js'); // Asunción
+// Rutas de Agentes: CORREGIDAS (Se asume minúscula en el inicio del archivo por Linux/Render)
+// Si esta corrección falla, entonces los archivos deben estar en Mayúscula y necesitamos volver a la versión anterior.
+const DirectorAgent = require('../agents/directorAgent.js'); // CAMBIO DE MAYÚSCULA A MINÚSCULA
+const CreativeAgent = require('../agents/creativeAgent.js'); // CAMBIO DE MAYÚSCULA A MINÚSCULA
+const AnalyticalAgent = require('../agents/analyticalAgent.js'); 
+const ControllerAgent = require('../agents/controllerAgent.js'); 
+const CoachAgent = require('../agents/coachAgent.js'); 
 
 
 class Orchestrator {
@@ -19,7 +19,7 @@ class Orchestrator {
         this.ticketId = ticketId;
         this.prompt = initialPrompt;
         this.gemini = new GeminiService();
-        this.history = []; // Memoria persistente
+        this.history = []; 
 
         // Inicializa tus agentes
         this.agents = {
@@ -64,19 +64,19 @@ class Orchestrator {
                 output: agentResponse
             });
 
-            // Lógica de Orquestación Dinámica (Simplificada para el test de despliegue)
+            // Lógica de Orquestación Dinámica 
             if (agentResponse.final_answer) {
                 result = agentResponse.final_answer;
                 break;
             }
 
-            // Simulación de cambio de agente o detención
+            // Simulación de flujo
             if (currentAgent === 'director') {
                 currentAgent = 'creative'; 
             } else if (currentAgent === 'creative') {
                 currentAgent = 'analytical';
             } else {
-                currentAgent = null; // Detener flujo
+                currentAgent = null; 
             }
 
             currentState = agentResponse.new_state || currentState;
