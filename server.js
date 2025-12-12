@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Orchestrator } = require('./orchestrator/Orchestrator.js');
-const { GeminiService } = require('./services/geminiService.js');
+const { Orchestrator } = require('./src/orchestrator/Orchestrator.js');
+const { GeminiService } = require('./src/services/geminiService.js');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
