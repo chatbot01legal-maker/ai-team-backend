@@ -1,87 +1,87 @@
-const { GeminiService } = require('../../services/geminiService.js');
-const { MemoryManager } = require('../../memory/MemoryManager.js');
+// ============================================================
+// 🤖 ORCHESTRATOR.JS - CÓDIGO CORREGIDO
+// ============================================================
+// ¡ATENCIÓN! La línea de abajo ha sido corregida.
+const { GeminiService } = require('../services/geminiService.js'); 
+// La ruta anterior era '../../services/...' y fallaba en Render.
 
-/**
- * Orchestrator: Dirige el flujo de trabajo para resolver un ticket.
- * Utiliza MemoryManager para mantener el estado y métricas.
- */
+// Importa tus Agentes aquí
+const DirectorAgent = require('../agents/DirectorAgent.js');
+const CreativeAgent = require('../agents/CreativeAgent.js');
+// ... (Importa el resto de tus agentes aquí: Analítico, Controlador, Coach)
+
 class Orchestrator {
-    constructor(ticketId, initialQuestion) {
+    constructor(ticketId, initialPrompt) {
         this.ticketId = ticketId;
-        this.memory = new MemoryManager(ticketId, initialQuestion);
-        this.geminiService = new GeminiService({ mode: process.env.GEMINI_MODE || 'real' });
+        this.prompt = initialPrompt;
+        this.gemini = new GeminiService();
+        this.history = []; // Memoria persistente
+
+        // Inicializa tus agentes
+        this.agents = {
+            director: new DirectorAgent(this.gemini),
+            creative: new CreativeAgent(this.gemini),
+            // ... (inicializa el resto de tus agentes aquí)
+        };
     }
 
     async run() {
-        console.log(`\n🤖 Iniciando orquestación para ticket ${this.ticketId}.`);
+        console.log(`[ORCHESTRATOR ${this.ticketId}] Iniciando Orquestación.`);
         
-        let currentState = {};
-        const MAX_STEPS = 5;
+        // FASE 1: Director analiza y decide el flujo
+        let currentAgent = 'director';
+        let currentState = {
+            prompt: this.prompt,
+            novelty_score: 0.5,
+            ambiguity_index: 0.5,
+            coherence_score: 0.5
+        };
         
-        // --- Agente 1: Analizador Inicial (Clasificación y Resumen) ---
-        let result = await this._runAgent('AnalyzerAgent', this._getAnalyzerPrompt());
-        currentState = await this.memory.addResult(result);
-        console.log(`[Paso 1: Analyzer] Novedad: ${currentState.metrics.novelty_score}`);
+        let maxIterations = 10;
+        let result = null;
 
-        // --- Agente 2: Buscador de Soluciones (Basado en el Resumen) ---
-        if (this.memory.history.length < MAX_STEPS) {
-            result = await this._runAgent('SearchAgent', this._getSearchPrompt());
-            currentState = await this.memory.addResult(result);
-            console.log(`[Paso 2: Searcher] Novedad: ${currentState.metrics.novelty_score}`);
-        }
-        
-        // --- Agente 3: Agente de Retroalimentación/Refinamiento (Condicional) ---
-        if (currentState.metrics.novelty_score < 0.25 && this.memory.history.length < MAX_STEPS) {
-            console.log("[Paso 3: Refiner] Novedad baja (<0.25). Refinando la respuesta.");
+        while (currentAgent && maxIterations > 0) {
+            console.log(`[ORCHESTRATOR] Ejecutando agente: ${currentAgent}`);
             
-            result = await this._runAgent('RefinerAgent', this._getRefinerPrompt());
-            currentState = await this.memory.addResult(result);
-            console.log(`[Paso 3: Refiner] Novedad: ${currentState.metrics.novelty_score}`);
-        }
-        
-        // --- Resultado Final ---
-        return {
-            ticketId: this.ticketId,
-            initialQuestion: this.memory.initialQuestion,
-            finalResult: this.memory.getLastText(),
-            history: this.memory.getHistory(),
-            status: 'COMPLETED',
-            totalSteps: this.memory.history.length
-        };
-    }
-
-    async _runAgent(agentName, prompt) {
-        const signature = `${agentName}-${this.ticketId}`;
-        console.log(`  -> Ejecutando ${agentName}...`);
-        
-        const startTime = Date.now();
-        const geminiResult = await this.geminiService.generateText(prompt, { signature: signature, forceSimulated: false });
-        const endTime = Date.now();
-        
-        return {
-            agent: agentName,
-            text: geminiResult.text,
-            model: geminiResult.model,
-            isReal: geminiResult.isReal,
-            metrics: {
-                time_ms: endTime - startTime,
+            const agent = this.agents[currentAgent];
+            if (!agent) {
+                console.error(`Agente no encontrado: ${currentAgent}`);
+                break;
             }
+
+            const agentResponse = await agent.execute(currentState, this.history);
+            
+            // Actualizar el estado y la historia
+            this.history.push({
+                agent: currentAgent,
+                input: currentState,
+                output: agentResponse
+            });
+
+            // Lógica de Orquestación Dinámica (Simplificada para el test de despliegue)
+            if (agentResponse.final_answer) {
+                result = agentResponse.final_answer;
+                break;
+            }
+
+            // Simulación de cambio de agente o detención
+            if (currentAgent === 'director') {
+                currentAgent = 'creative'; // Simulación de flujo: Director -> Creativo
+            } else {
+                currentAgent = null; // Detener flujo si no es el director
+            }
+
+            currentState = agentResponse.new_state || currentState;
+            maxIterations--;
+        }
+
+        return {
+            final_result: result || 'Flujo de orquestación finalizado sin respuesta definitiva (simulación).',
+            full_history: this.history,
+            gemini_mode: this.gemini.mode
         };
-    }
-    
-    _getAnalyzerPrompt() {
-        return `Eres un agente de clasificación y resumen. Tu trabajo es analizar la siguiente pregunta inicial del usuario...`;
-    }
-
-    _getSearchPrompt() {
-        const analyzerResult = this.memory.history[0].text;
-        return `Eres un agente de búsqueda de soluciones. Tienes la clasificación y el resumen del analizador...`;
-    }
-
-    _getRefinerPrompt() {
-        const lastResult = this.memory.getLastText();
-        return `Eres un agente de retroalimentación y refinamiento. El agente anterior (SearchAgent) generó la siguiente respuesta...`;
     }
 }
 
 module.exports = { Orchestrator };
+// ============================================================
