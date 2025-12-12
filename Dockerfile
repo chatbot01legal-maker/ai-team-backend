@@ -1,20 +1,15 @@
-# Dockerfile para Render - Node 20 Alpine
+# Usa la imagen base de Node.js
 FROM node:20-alpine
 
-# Crear carpeta de trabajo
+# Establece el directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Copia los archivos de definición de dependencia y los instala
 COPY package*.json ./
+RUN npm ci --production
 
-# Instalar dependencias de producción
-RUN npm install --omit=dev
-
-# Copiar todo el resto del proyecto
+# Copia el resto de los archivos de la aplicación
 COPY . .
 
-# Exponer puerto de la app
-EXPOSE 10000
-
-# Comando de arranque
-CMD ["node", "server.cjs"]
+# Comando de inicio: FUERZA la ejecución del script de diagnóstico
+CMD ["node", "test_server.js"]
