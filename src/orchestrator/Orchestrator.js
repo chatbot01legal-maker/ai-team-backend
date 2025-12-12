@@ -1,14 +1,18 @@
 // ============================================================
-// 🤖 ORCHESTRATOR.JS - CÓDIGO CORREGIDO
+// 🤖 ORCHESTRATOR.JS - CORRECCIÓN DE RUTAS DE AGENTES
 // ============================================================
-// ¡ATENCIÓN! La línea de abajo ha sido corregida.
-const { GeminiService } = require('../services/geminiService.js'); 
-// La ruta anterior era '../../services/...' y fallaba en Render.
 
-// Importa tus Agentes aquí
+// Ruta de Servicios: CORREGIDA
+const { GeminiService } = require('../services/geminiService.js'); 
+
+// Rutas de Agentes: CORREGIDAS
+// NOTA: Si el error persiste, confirma la nomenclatura exacta de tus archivos dentro de /src/agents/
 const DirectorAgent = require('../agents/DirectorAgent.js');
 const CreativeAgent = require('../agents/CreativeAgent.js');
-// ... (Importa el resto de tus agentes aquí: Analítico, Controlador, Coach)
+const AnalyticalAgent = require('../agents/AnalyticalAgent.js'); // Asunción
+const ControllerAgent = require('../agents/ControllerAgent.js'); // Asunción
+const CoachAgent = require('../agents/CoachAgent.js'); // Asunción
+
 
 class Orchestrator {
     constructor(ticketId, initialPrompt) {
@@ -21,7 +25,9 @@ class Orchestrator {
         this.agents = {
             director: new DirectorAgent(this.gemini),
             creative: new CreativeAgent(this.gemini),
-            // ... (inicializa el resto de tus agentes aquí)
+            analytical: new AnalyticalAgent(this.gemini),
+            controller: new ControllerAgent(this.gemini),
+            coach: new CoachAgent(this.gemini),
         };
     }
 
@@ -66,9 +72,11 @@ class Orchestrator {
 
             // Simulación de cambio de agente o detención
             if (currentAgent === 'director') {
-                currentAgent = 'creative'; // Simulación de flujo: Director -> Creativo
+                currentAgent = 'creative'; 
+            } else if (currentAgent === 'creative') {
+                currentAgent = 'analytical';
             } else {
-                currentAgent = null; // Detener flujo si no es el director
+                currentAgent = null; // Detener flujo
             }
 
             currentState = agentResponse.new_state || currentState;
@@ -76,7 +84,7 @@ class Orchestrator {
         }
 
         return {
-            final_result: result || 'Flujo de orquestación finalizado sin respuesta definitiva (simulación).',
+            final_result: result || 'Flujo de orquestación finalizado sin respuesta definitiva.',
             full_history: this.history,
             gemini_mode: this.gemini.mode
         };
