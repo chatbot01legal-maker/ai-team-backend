@@ -56,7 +56,7 @@ app.post('/api/orchestrate', async (req, res) => {
 
 
 // RUTA DE DIAGNÓSTICO (Health Check)
-app.get('/api/diagnostics', (req, res) => {
+app.get('/', (req, res) => {
     const apiKeyStatus = process.env.GEMINI_API_KEY ? 'CONFIGURADA' : 'NO CONFIGURADA';
 
     res.json({
