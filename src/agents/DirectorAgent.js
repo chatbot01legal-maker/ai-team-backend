@@ -1,5 +1,5 @@
-const Base = require('./baseAgent.cjs');
-const { estimateMetrics } = require('../utils/metricsUtils.cjs');
+const Base = require('./BaseAgent');
+const { estimateMetrics } = require('../utils/metricsUtils');
 
 class DirectorAgent extends Base {
   constructor(deps) { 

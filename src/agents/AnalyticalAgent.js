@@ -1,4 +1,4 @@
-const Base = require('./baseAgent');
+const Base = require('./BaseAgent');
 const { estimateMetrics } = require('../utils/metricsUtils');
 
 class AnaliticoAgent extends Base {
