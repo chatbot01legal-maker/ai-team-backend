@@ -1,17 +1,16 @@
 // ============================================================
-// 🤖 ORCHESTRATOR.JS - CORRECCIÓN FINAL DE NOMENCLATURA (CASE-SENSITIVE)
+// 🤖 ORCHESTRATOR.JS - CORRECCIÓN DE NOMENCLATURA (Volviendo a MAYÚSCULAS)
 // ============================================================
 
 // Ruta de Servicios: CORRECTA
 const { GeminiService } = require('../services/geminiService.js'); 
 
-// Rutas de Agentes: CORREGIDAS (Se asume minúscula en el inicio del archivo por Linux/Render)
-// Si esta corrección falla, entonces los archivos deben estar en Mayúscula y necesitamos volver a la versión anterior.
-const DirectorAgent = require('../agents/directorAgent.js'); // CAMBIO DE MAYÚSCULA A MINÚSCULA
-const CreativeAgent = require('../agents/creativeAgent.js'); // CAMBIO DE MAYÚSCULA A MINÚSCULA
-const AnalyticalAgent = require('../agents/analyticalAgent.js'); 
-const ControllerAgent = require('../agents/controllerAgent.js'); 
-const CoachAgent = require('../agents/coachAgent.js'); 
+// Rutas de Agentes: CORREGIDAS (Volvemos a mayúscula en el inicio del archivo)
+const DirectorAgent = require('../agents/DirectorAgent.js'); // FORZAMOS MAYÚSCULA
+const CreativeAgent = require('../agents/CreativeAgent.js'); // FORZAMOS MAYÚSCULA
+const AnalyticalAgent = require('../agents/AnalyticalAgent.js'); 
+const ControllerAgent = require('../agents/ControllerAgent.js'); 
+const CoachAgent = require('../agents/CoachAgent.js'); 
 
 
 class Orchestrator {
@@ -34,7 +33,6 @@ class Orchestrator {
     async run() {
         console.log(`[ORCHESTRATOR ${this.ticketId}] Iniciando Orquestación.`);
         
-        // FASE 1: Director analiza y decide el flujo
         let currentAgent = 'director';
         let currentState = {
             prompt: this.prompt,
@@ -57,20 +55,17 @@ class Orchestrator {
 
             const agentResponse = await agent.execute(currentState, this.history);
             
-            // Actualizar el estado y la historia
             this.history.push({
                 agent: currentAgent,
                 input: currentState,
                 output: agentResponse
             });
 
-            // Lógica de Orquestación Dinámica 
             if (agentResponse.final_answer) {
                 result = agentResponse.final_answer;
                 break;
             }
 
-            // Simulación de flujo
             if (currentAgent === 'director') {
                 currentAgent = 'creative'; 
             } else if (currentAgent === 'creative') {
