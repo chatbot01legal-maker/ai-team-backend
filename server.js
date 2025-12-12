@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Orchestrator } = require('./src/orchestrator/Orchestrator.js'); // RUTA CORREGIDA
-const { GeminiService } = require('./src/services/geminiService.js');   // RUTA CORREGIDA
+const { Orchestrator } = require('./src/orchestrator/Orchestrator.js');
+const { GeminiService } = require('./src/services/geminiService.js');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -23,7 +23,6 @@ app.post('/api/orchestrate', async (req, res) => {
         return res.status(400).json({ ok: false, error: 'Se requiere el campo "prompt".' });
     }
 
-    // Generar un ID de ticket (para simulación)
     const ticketId = `TICKET-${Date.now()}`;
     console.log(`\n======================================================`);
     console.log(`📥 INICIANDO ORQUESTACIÓN: ${ticketId}`);
