@@ -1,5 +1,5 @@
-const { GeminiService } = require('../services/geminiService.js');
-const { MemoryManager } = require('../memory/MemoryManager.js');
+const { GeminiService } = require('../../services/geminiService.js');
+const { MemoryManager } = require('../../memory/MemoryManager.js');
 
 /**
  * Orchestrator: Dirige el flujo de trabajo para resolver un ticket.
@@ -12,10 +12,6 @@ class Orchestrator {
         this.geminiService = new GeminiService({ mode: process.env.GEMINI_MODE || 'real' });
     }
 
-    /**
-     * Define y ejecuta la secuencia de agentes (el workflow).
-     * @returns {object} El resultado final del proceso.
-     */
     async run() {
         console.log(`\n🤖 Iniciando orquestación para ticket ${this.ticketId}.`);
         
@@ -35,7 +31,6 @@ class Orchestrator {
         }
         
         // --- Agente 3: Agente de Retroalimentación/Refinamiento (Condicional) ---
-        // Condición de salida: Si la novedad es baja, significa que el agente de búsqueda repitió información.
         if (currentState.metrics.novelty_score < 0.25 && this.memory.history.length < MAX_STEPS) {
             console.log("[Paso 3: Refiner] Novedad baja (<0.25). Refinando la respuesta.");
             
@@ -55,9 +50,6 @@ class Orchestrator {
         };
     }
 
-    /**
-     * Llama al servicio Gemini para generar texto usando un prompt específico.
-     */
     async _runAgent(agentName, prompt) {
         const signature = `${agentName}-${this.ticketId}`;
         console.log(`  -> Ejecutando ${agentName}...`);
@@ -66,7 +58,6 @@ class Orchestrator {
         const geminiResult = await this.geminiService.generateText(prompt, { signature: signature, forceSimulated: false });
         const endTime = Date.now();
         
-        // Estructura de resultado estandarizada
         return {
             agent: agentName,
             text: geminiResult.text,
@@ -74,48 +65,22 @@ class Orchestrator {
             isReal: geminiResult.isReal,
             metrics: {
                 time_ms: endTime - startTime,
-                // novelty_score será calculado en MemoryManager.addResult()
             }
         };
     }
     
-    // --- Prompts específicos para los Agentes (Sin cambios) ---
-    
     _getAnalyzerPrompt() {
-        return `Eres un agente de clasificación y resumen. Tu trabajo es analizar la siguiente pregunta inicial del usuario y proporcionar una clasificación (ej: "Bug", "Pregunta", "Solicitud") y un resumen detallado que el siguiente agente pueda usar para buscar una solución.
-        
-        ---
-        Pregunta inicial del usuario: "${this.memory.initialQuestion}"
-        
-        OUTPUT FORMATO:
-        Clasificación: [TU CLASIFICACIÓN]
-        Resumen: [TU RESUMEN DETALLADO]`;
+        return `Eres un agente de clasificación y resumen. Tu trabajo es analizar la siguiente pregunta inicial del usuario...`;
     }
 
     _getSearchPrompt() {
         const analyzerResult = this.memory.history[0].text;
-        
-        return `Eres un agente de búsqueda de soluciones. Tienes la clasificación y el resumen del analizador. Tu tarea es generar una respuesta CONCRETA y ÚTIL directamente al usuario para resolver su problema. Utiliza la información proporcionada a continuación como contexto para tu respuesta.
-        
-        ---
-        Contexto del Análisis:
-        ${analyzerResult}
-        
-        Respuesta al usuario (focada en solución):`;
+        return `Eres un agente de búsqueda de soluciones. Tienes la clasificación y el resumen del analizador...`;
     }
 
     _getRefinerPrompt() {
         const lastResult = this.memory.getLastText();
-        
-        return `Eres un agente de retroalimentación y refinamiento. El agente anterior (SearchAgent) generó la siguiente respuesta, pero el orquestador detectó que el contenido tiene baja novedad (es decir, es repetitivo o demasiado similar al análisis inicial).
-        
-        Tu tarea es REESCRIBIR y AMPLIAR la respuesta anterior, haciendo la solución más clara y detallada para el usuario.
-        
-        ---
-        Respuesta a refinar:
-        ${lastResult}
-        
-        Respuesta refinada y ampliada:`;
+        return `Eres un agente de retroalimentación y refinamiento. El agente anterior (SearchAgent) generó la siguiente respuesta...`;
     }
 }
 
